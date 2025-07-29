@@ -147,9 +147,9 @@ export default function Login() {
     window.google.accounts.oauth2
       .initTokenClient({
         client_id: NEXT_PUBLIC_CLIENT_ID,
-        // Request both sign-in and Google Sheets permissions
+        // Request sign-in, Google Sheets, and Google Docs permissions
         scope:
-          "email profile https://www.googleapis.com/auth/spreadsheets.readonly",
+          "email profile https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/drive.readonly",
         callback: handleAuthSuccess,
         error_callback: handleAuthError,
       })

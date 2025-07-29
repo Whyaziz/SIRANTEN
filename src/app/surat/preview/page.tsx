@@ -1,7 +1,482 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  fetchDocumentTemplate,
+  downloadDocument,
+  replaceVariablesInTemplate,
+  DocumentTemplate,
+  createProcessedDocument,
+  downloadProcessedDocument,
+  deleteProcessedDocument,
+  ProcessedDocument,
+} from "@/utils/docsService";
+import { letterTypes } from "@/types/letterTypes";
+import { Resident } from "@/utils/spreadsheetService";
+
+interface PreviewData {
+  resident: Resident;
+  letterType: string;
+  formData: any;
+}
+
 export default function PreviewPage() {
+  const router = useRouter();
+  const [template, setTemplate] = useState<DocumentTemplate | null>(null);
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
+  const [processedContent, setProcessedContent] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const [processedDocument, setProcessedDocument] =
+    useState<ProcessedDocument | null>(null);
+
+  useEffect(() => {
+    const loadPreviewData = () => {
+      try {
+        const storedData = localStorage.getItem("letterPreviewData");
+        if (!storedData) {
+          router.push("/surat/create");
+          return;
+        }
+
+        const data = JSON.parse(storedData);
+        setPreviewData(data);
+      } catch (err) {
+        console.error("Error loading preview data:", err);
+        router.push("/surat/create");
+      }
+    };
+
+    loadPreviewData();
+  }, [router]);
+
+  useEffect(() => {
+    if (!previewData) return;
+
+    const loadTemplate = async () => {
+      try {
+        setLoading(true);
+        const templateData = await fetchDocumentTemplate();
+        setTemplate(templateData);
+
+        // Create variables object from form data and resident data
+        const variables = createVariablesFromData(previewData);
+
+        // Replace variables in template
+        const processed = replaceVariablesInTemplate(
+          templateData.htmlContent,
+          variables
+        );
+        setProcessedContent(processed);
+      } catch (err) {
+        console.error("Error loading template:", err);
+        setError("Gagal memuat template surat. Silakan coba lagi.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTemplate();
+  }, [previewData]);
+
+  const createVariablesFromData = (
+    data: PreviewData
+  ): Record<string, string> => {
+    const { resident, formData } = data;
+
+    // Get current date
+    const currentDate = new Date();
+    const dateStr = currentDate.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    // Common variables that can be used in any letter
+    const variables: Record<string, string> = {
+      // Resident data
+      nama: resident.namaLengkap || "",
+      nik: resident.nik || "",
+      noKK: resident.noKK || "",
+      tempatLahir: resident.tempatLahir || "",
+      tanggalLahir: resident.tglLahir || "",
+      jenisKelamin: resident.jenisKelamin || "",
+      agama: resident.agama || "",
+      pekerjaan: resident.pekerjaan || "",
+      alamat: resident.alamat || "",
+      rt: resident.rt || "",
+      rw: resident.rw || "",
+      statusKawin: resident.statusKawin || "",
+      pendidikan: resident.pendidikan || "",
+      umur: resident.umur || "",
+      ayah: resident.ayah || "",
+      ibu: resident.ibu || "",
+
+      // Date and administrative data
+      tanggalSurat: dateStr,
+      tanggal: currentDate.getDate().toString(),
+      bulan: currentDate.toLocaleDateString("id-ID", { month: "long" }),
+      tahun: currentDate.getFullYear().toString(),
+
+      // Form-specific data
+      ...formData,
+    };
+
+    return variables;
+  };
+
+  const handleDownload = async (format: "pdf" | "docx") => {
+    try {
+      setDownloading(format);
+
+      const letterTypeData = letterTypes.find(
+        (lt) => lt.id === previewData?.letterType
+      );
+      const fileName = `${letterTypeData?.title.replace(
+        /\s+/g,
+        "_"
+      )}_${previewData?.resident.namaLengkap.replace(/\s+/g, "_")}`;
+
+      // Create variables object
+      const variables = createVariablesFromData(previewData!);
+
+      // Check if we already have a processed document
+      let docToDownload = processedDocument;
+
+      if (!docToDownload) {
+        // Create a new processed document with variables replaced
+        docToDownload = await createProcessedDocument(variables, fileName);
+        setProcessedDocument(docToDownload);
+      }
+
+      // Download the processed document
+      await downloadProcessedDocument(
+        docToDownload.documentId,
+        format,
+        fileName
+      );
+    } catch (err) {
+      console.error("Error downloading:", err);
+      setError(
+        `Gagal mengunduh ${format.toUpperCase()}: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  const handleEdit = () => {
+    router.push("/surat/create");
+  };
+
+  const handleCreateNew = () => {
+    // Clean up processed document if exists
+    if (processedDocument) {
+      deleteProcessedDocument(processedDocument.documentId).catch(
+        console.error
+      );
+    }
+    localStorage.removeItem("letterPreviewData");
+    router.push("/surat/create");
+  };
+
+  // Clean up on component unmount
+  useEffect(() => {
+    return () => {
+      if (processedDocument) {
+        deleteProcessedDocument(processedDocument.documentId).catch(
+          console.error
+        );
+      }
+    };
+  }, [processedDocument]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-md">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600 text-center">
+            Memuat preview surat...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !previewData) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-md max-w-md">
+          <div className="text-red-500 text-center">
+            <h2 className="text-xl font-bold mb-4">Error</h2>
+            <p className="mb-4">{error || "Data tidak ditemukan"}</p>
+            <Link
+              href="/surat/create"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Kembali ke Buat Surat
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const letterTypeData = letterTypes.find(
+    (lt) => lt.id === previewData.letterType
+  );
+
   return (
-    <div className="flex items-center justify-center h-screen">
-      <h1 className="text-2xl font-bold">Halaman Preview Surat</h1>
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          {/* Header */}
+          <div className="bg-blue-500 text-white p-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold">Preview Surat</h1>
+                <p className="text-blue-100">
+                  {letterTypeData?.title} - {previewData.resident.namaLengkap}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleEdit}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition duration-200"
+                >
+                  Edit
+                </button>
+                <Link
+                  href="/"
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition duration-200"
+                >
+                  Dashboard
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-gray-800">
+                Aksi Surat
+              </h2>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => handleDownload("pdf")}
+                  disabled={downloading === "pdf"}
+                  className="bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-6 py-2 rounded transition duration-200 flex items-center gap-2"
+                >
+                  {downloading === "pdf" ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Memproses & Mengunduh...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Unduh PDF
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => handleDownload("docx")}
+                  disabled={downloading === "docx"}
+                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-2 rounded transition duration-200 flex items-center gap-2"
+                >
+                  {downloading === "docx" ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Memproses & Mengunduh...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Unduh DOCX
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleCreateNew}
+                  className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded transition duration-200"
+                >
+                  Buat Surat Baru
+                </button>
+              </div>
+            </div>
+
+            {/* Show Google Docs link if processed document exists */}
+            {processedDocument && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                <p className="text-sm text-blue-800 mb-2">
+                  <strong>Dokumen telah diproses:</strong>
+                </p>
+                <a
+                  href={processedDocument.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline text-sm"
+                >
+                  Buka di Google Docs: {processedDocument.title}
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Document Preview */}
+          <div className="p-6">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Preview Dokumen
+            </h2>
+
+            {/* Document Paper Style */}
+            <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+              <div
+                className="bg-white mx-auto"
+                style={{ maxWidth: "8.5in", minHeight: "11in" }}
+              >
+                <div
+                  className="p-8 text-black leading-relaxed"
+                  style={{
+                    fontFamily: 'Times, "Times New Roman", serif',
+                    fontSize: "12pt",
+                    lineHeight: "1.6",
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      processedContent || "<p>Tidak ada konten tersedia</p>",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Summary Information */}
+          <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              Informasi Surat
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-gray-600">Jenis Surat:</p>
+                <p className="font-medium">{letterTypeData?.title}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Nama Pemohon:</p>
+                <p className="font-medium">
+                  {previewData.resident.namaLengkap}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-600">NIK:</p>
+                <p className="font-medium">{previewData.resident.nik}</p>
+              </div>
+              <div>
+                <p className="text-gray-600">Tanggal Dibuat:</p>
+                <p className="font-medium">
+                  {new Date().toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Custom CSS for document styling */}
+      <style jsx>{`
+        .document-content h1,
+        .document-content h2,
+        .document-content h3,
+        .document-content h4,
+        .document-content h5,
+        .document-content h6 {
+          font-weight: bold;
+          margin-bottom: 0.5em;
+          margin-top: 1em;
+        }
+
+        .document-content h1 {
+          font-size: 18pt;
+        }
+        .document-content h2 {
+          font-size: 16pt;
+        }
+        .document-content h3 {
+          font-size: 14pt;
+        }
+
+        .document-content table {
+          border-collapse: collapse;
+          margin: 1em 0;
+          width: 100%;
+        }
+
+        .document-content table td,
+        .document-content table th {
+          border: 1px solid #ccc;
+          padding: 8px;
+          vertical-align: top;
+        }
+
+        .document-content p {
+          margin-bottom: 1em;
+          text-align: justify;
+        }
+
+        .document-content ul,
+        .document-content ol {
+          margin: 1em 0;
+          padding-left: 2em;
+        }
+
+        .document-content li {
+          margin-bottom: 0.5em;
+        }
+
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+
+          .document-content {
+            box-shadow: none !important;
+            border: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

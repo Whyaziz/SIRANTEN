@@ -1,0 +1,175 @@
+[
+  {
+    "judul_surat": "SURAT KETERANGAN USAHA",
+    "doc_id": "1cKqmk0r8PLImHgtWmtsx3Gjep9YPET15_vnaO8aMzM0",
+    "variabel": [
+      "nomor_surat",
+      "nama",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "pekerjaan",
+      "nokk",
+      "nik",
+      "jenis-kelamin",
+      "alamat",
+      "keperluan",
+      "masa-berlaku",
+      "rw",
+      "nomor-tanggal-surat",
+      "bidang-usaha",
+      "lokasi-usaha",
+      "lama-usaha",
+      "surat-diperlukan",
+      "pemohon",
+      "date",
+      "kepala-desa"
+    ]
+  },
+  {
+    "judul_surat": "SURAT PENGANTAR (UMUM)",
+    "doc_id": "1D-t_HjUJfuzB2SM_EAfTOcjTzsfLZNzV9eEcp_Mo3RU",
+    "variabel": [
+      "nomor_surat",
+      "nama",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "pekerjaan",
+      "nokk",
+      "nik",
+      "jenis-kelamin",
+      "alamat",
+      "keperluan",
+      "surat-diperlukan",
+      "pemohon",
+      "date",
+      "kepala-desa"
+    ]
+  },
+  {
+    "judul_surat": "SURAT PENGANTAR (KEHILANGAN)",
+    "doc_id": "1UagepWXzVyxooPskG_ybpDBCbsopAtnOdMbp19U2l7w",
+    "variabel": [
+      "nomor_surat",
+      "nama",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "pekerjaan",
+      "nokk",
+      "nik",
+      "jenis-kelamin",
+      "alamat",
+      "keterangan-lain",
+      "barang-hilang",
+      "hilang-oleh",
+      "lokasi-hilang",
+      "date",
+      "kepala-desa"
+    ]
+  },
+  {
+    "judul_surat": "SURAT KETERANGAN KEHILANGAN KARTU KELUARGA (KK)",
+    "doc_id": "1_V49DIS1pFtH5dB39jXnuHcLRC2ryRP2u9OHg-pVvvk",
+    "variabel": [
+      "nomor_surat",
+      "nama",
+      "nokk",
+      "nik",
+      "tempat-tanggal-lahir",
+      "jenis-kelamin",
+      "alamat",
+      "hilang-oleh",
+      "lokasi-hilang",
+      "surat-diperlukan",
+      "date",
+      "kepala-desa"
+    ]
+  },
+  {
+    "judul_surat": "SURAT KETERANGAN DOMISILI TEMPAT TINGGAL",
+    "doc_id": "1bCeNhEskG21i2xYcw4YTDbw4BLsUqTdBvu_Fo9depyw",
+    "variabel": [
+      "nomor_surat",
+      "nama",
+      "jenis-kelamin",
+      "bin",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "nik",
+      "alamat",
+      "alamat-domisili",
+      "dukuh",
+      "rt",
+      "rw",
+      "lama-tinggal",
+      "surat-diperlukan",
+      "camat",
+      "nip-camat",
+      "date",
+      "kepala-desa"
+    ]
+  },
+  {
+    "judul_surat": "SURAT KETERANGAN TIDAK MAMPU (UMUM)",
+    "doc_id": "1BmFOf20Qd_dfHghGyD3-fio0m0IpmE5MiQDj1E4SEEI",
+    "variabel": [
+      "nomor_surat",
+      "nama",
+      "jenis-kelamin",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "nik",
+      "pekerjaan",
+      "alamat",
+      "rw",
+      "tanggal-nomor-surat",
+      "surat-diperlukan",
+      "camat",
+      "nip-camat",
+      "date",
+      "kepala-desa"
+    ]
+  },
+  {
+    "judul_surat": "SURAT KETERANGAN JALUR AFIRMASI (TIDAK MAMPU)",
+    "doc_id": "1Ef3d2Jxj2q-IUDNveP5qErsvewM1JzVKb-r76KEfhp0",
+    "variabel": [
+      "nomor_surat",
+      "nama",
+      "jenis-kelamin",
+      "tempat-tanggal-lahir",
+      "nik",
+      "nokk",
+      "agama",
+      "pekerjaan",
+      "alamat",
+      "rw",
+      "tanggal-nomor-surat",
+      "nama-sekolah",
+      "nama-anak",
+      "idjtg",
+      "tempat-tanggal-lahir-anak",
+      "nik-anak",
+      "alamat-anak",
+      "camat",
+      "nip-camat",
+      "date",
+      "kepala-desa"
+    ]
+  },
+  {
+    "judul_surat": "SURAT KETERANGAN USULAN PESERTA (BPJS)",
+    "doc_id": "1RNd1VLXItsvZwZ0QkD_EysjbkFRStTnRgFOCHsEJpNI",
+    "variabel": [
+      "nomor_surat",
+      "nama",
+      "nokk",
+      "nik",
+      "tempat-tanggal-lahir",
+      "jenis-kelamin",
+      "alamat",
+      "notlp",
+      "date",
+      "kepala-desa"
+    ]
+  }
+]
