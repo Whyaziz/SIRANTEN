@@ -22,6 +22,34 @@ interface PreviewData {
   formData: any;
 }
 
+// Helper function to convert gender code to display text
+const getGenderDisplay = (gender: string): string => {
+  switch (gender?.toUpperCase()) {
+    case "LK":
+      return "Laki-laki";
+    case "PR":
+      return "Perempuan";
+    default:
+      return gender || "";
+  }
+};
+
+// Helper function to convert marital status
+const getMaritalStatusDisplay = (status: string): string => {
+  switch (status?.toUpperCase()) {
+    case "JD":
+      return "Janda";
+    case "DD":
+      return "Duda";
+    case "K":
+      return "Kawin";
+    case "BK":
+      return "Belum Kawin";
+    default:
+      return status || "";
+  }
+};
+
 export default function PreviewPage() {
   const router = useRouter();
   const [template, setTemplate] = useState<DocumentTemplate | null>(null);
@@ -59,7 +87,18 @@ export default function PreviewPage() {
     const loadTemplate = async () => {
       try {
         setLoading(true);
-        const templateData = await fetchDocumentTemplate();
+
+        // Get the letter type data to get the correct docId
+        const letterTypeData = letterTypes.find(
+          (lt) => lt.id === previewData.letterType
+        );
+
+        if (!letterTypeData) {
+          throw new Error("Letter type not found");
+        }
+
+        // Pass the specific docId for this letter type
+        const templateData = await fetchDocumentTemplate(letterTypeData.docId);
         setTemplate(templateData);
 
         // Create variables object from form data and resident data
@@ -95,34 +134,54 @@ export default function PreviewPage() {
       year: "numeric",
     });
 
-    // Common variables that can be used in any letter
+    // Base variables from form data (includes generated and user input)
     const variables: Record<string, string> = {
-      // Resident data
-      nama: resident.namaLengkap || "",
-      nik: resident.nik || "",
-      noKK: resident.noKK || "",
-      tempatLahir: resident.tempatLahir || "",
-      tanggalLahir: resident.tglLahir || "",
-      jenisKelamin: resident.jenisKelamin || "",
-      agama: resident.agama || "",
-      pekerjaan: resident.pekerjaan || "",
-      alamat: resident.alamat || "",
-      rt: resident.rt || "",
-      rw: resident.rw || "",
-      statusKawin: resident.statusKawin || "",
-      pendidikan: resident.pendidikan || "",
-      umur: resident.umur || "",
-      ayah: resident.ayah || "",
-      ibu: resident.ibu || "",
+      ...formData,
 
-      // Date and administrative data
+      // Ensure date is current
+      date: dateStr,
       tanggalSurat: dateStr,
       tanggal: currentDate.getDate().toString(),
       bulan: currentDate.toLocaleDateString("id-ID", { month: "long" }),
       tahun: currentDate.getFullYear().toString(),
 
-      // Form-specific data
-      ...formData,
+      // Comprehensive resident data mapping with proper conversions
+      nama: resident.namaLengkap || "",
+      nik: resident.nik || "",
+      noKK: resident.noKK || "",
+      nokk: resident.noKK || "",
+      tempatLahir: resident.tempatLahir || "",
+      tanggalLahir: resident.tglLahir || "",
+      jenisKelamin: getGenderDisplay(resident.jenisKelamin),
+      statusKawin: getMaritalStatusDisplay(resident.statusKawin),
+      statusPerkawinan: getMaritalStatusDisplay(resident.statusKawin),
+      pendidikan: resident.pendidikan || "",
+      agama: resident.agama || "",
+      pekerjaan: resident.pekerjaan || "",
+      alamat: resident.alamat || "",
+      alamatLengkap: `${resident.alamat || ""} RT ${resident.rt || ""} RW ${
+        resident.rw || ""
+      }`,
+      rt: resident.rt || "",
+      rw: resident.rw || "",
+      rtrw: `${resident.rt || ""}/${resident.rw || ""}`,
+      umur: resident.umur || "",
+      ayah: resident.ayah || "",
+      ibu: resident.ibu || "",
+      namaAyah: resident.ayah || "",
+      namaIbu: resident.ibu || "",
+      shdk: resident.shdk || "",
+      statusHubungan: resident.shdk || "",
+
+      // Additional mappings for backward compatibility
+      "tempat-lahir": resident.tempatLahir || "",
+      "tanggal-lahir": resident.tglLahir || "",
+      "jenis-kelamin": getGenderDisplay(resident.jenisKelamin),
+      "status-kawin": getMaritalStatusDisplay(resident.statusKawin),
+      "status-perkawinan": getMaritalStatusDisplay(resident.statusKawin),
+      "nama-ayah": resident.ayah || "",
+      "nama-ibu": resident.ibu || "",
+      "status-hubungan": resident.shdk || "",
     };
 
     return variables;
@@ -147,8 +206,12 @@ export default function PreviewPage() {
       let docToDownload = processedDocument;
 
       if (!docToDownload) {
-        // Create a new processed document with variables replaced
-        docToDownload = await createProcessedDocument(variables, fileName);
+        // Create a new processed document with variables replaced, passing the correct template docId
+        docToDownload = await createProcessedDocument(
+          variables,
+          fileName,
+          letterTypeData?.docId
+        );
         setProcessedDocument(docToDownload);
       }
 

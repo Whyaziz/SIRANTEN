@@ -13,9 +13,9 @@ export interface ProcessedDocument {
   url: string;
 }
 
-const DOCUMENT_ID = "1BmFOf20Qd_dfHghGyD3-fio0m0IpmE5MiQDj1E4SEEI";
-
-export async function fetchDocumentTemplate(): Promise<DocumentTemplate> {
+export async function fetchDocumentTemplate(
+  docId: string
+): Promise<DocumentTemplate> {
   const accessToken = Cookies.get("auth_token");
 
   if (!accessToken) {
@@ -23,9 +23,9 @@ export async function fetchDocumentTemplate(): Promise<DocumentTemplate> {
   }
 
   try {
-    // Fetch document content using Google Docs API
+    // Use the provided docId parameter instead of hardcoded DOCUMENT_ID
     const response = await fetch(
-      `https://docs.googleapis.com/v1/documents/${DOCUMENT_ID}`,
+      `https://docs.googleapis.com/v1/documents/${docId}`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
       }
@@ -50,7 +50,7 @@ export async function fetchDocumentTemplate(): Promise<DocumentTemplate> {
       title: document.title || "Untitled Document",
       content: content,
       htmlContent: htmlContent,
-      documentId: DOCUMENT_ID,
+      documentId: docId, // Use the provided docId
     };
   } catch (error) {
     console.error("Error fetching document:", error);
@@ -203,7 +203,10 @@ function convertColorToHex(color: any): string {
   return "#000000"; // Default to black
 }
 
-export async function downloadDocument(format: "pdf" | "docx"): Promise<void> {
+export async function downloadDocument(
+  format: "pdf" | "docx",
+  docId: string
+): Promise<void> {
   const accessToken = Cookies.get("auth_token");
 
   if (!accessToken) {
@@ -216,8 +219,9 @@ export async function downloadDocument(format: "pdf" | "docx"): Promise<void> {
         ? "application/pdf"
         : "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
+    // Use the provided docId parameter
     const response = await fetch(
-      `https://www.googleapis.com/drive/v3/files/${DOCUMENT_ID}/export?mimeType=${encodeURIComponent(
+      `https://www.googleapis.com/drive/v3/files/${docId}/export?mimeType=${encodeURIComponent(
         mimeType
       )}`,
       {
@@ -280,7 +284,8 @@ export function extractVariablesFromTemplate(content: string): string[] {
 // Function to create a copy of the template document with replaced variables
 export async function createProcessedDocument(
   variables: Record<string, string>,
-  fileName: string = "Surat"
+  fileName: string = "Surat",
+  templateDocId?: string
 ): Promise<ProcessedDocument> {
   const accessToken = Cookies.get("auth_token");
 
@@ -288,10 +293,28 @@ export async function createProcessedDocument(
     throw new Error("Not authenticated");
   }
 
+  // Get the template document ID from localStorage if not provided
+  let docIdToUse = templateDocId;
+  if (!docIdToUse) {
+    const storedData = localStorage.getItem("letterPreviewData");
+    if (storedData) {
+      const data = JSON.parse(storedData);
+      const letterTypes = await import("@/types/letterTypes");
+      const letterTypeData = letterTypes.letterTypes.find(
+        (lt) => lt.id === data.letterType
+      );
+      docIdToUse = letterTypeData?.docId;
+    }
+  }
+
+  if (!docIdToUse) {
+    throw new Error("Template document ID not found");
+  }
+
   try {
-    // Step 1: Create a copy of the template document
+    // Step 1: Create a copy of the template document using the correct docId
     const copyResponse = await fetch(
-      `https://www.googleapis.com/drive/v3/files/${DOCUMENT_ID}/copy`,
+      `https://www.googleapis.com/drive/v3/files/${docIdToUse}/copy`,
       {
         method: "POST",
         headers: {

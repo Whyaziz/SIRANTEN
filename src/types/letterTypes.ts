@@ -1,113 +1,213 @@
-export type LetterType =
-  | "USULAN_PESERTA"
-  | "TIDAK_MAMPU"
-  | "JALUR_AFIRMASI"
-  | "KEHILANGAN_KK"
-  | "PENGANTAR"
-  | "DOMISILI"
-  | "USAHA";
-
-export interface LetterTypeInfo {
-  id: LetterType;
+export interface LetterType {
+  id: string;
   title: string;
   description: string;
+  docId: string;
+  letterCode: string;
+  variables: string[];
 }
 
-export const letterTypes: LetterTypeInfo[] = [
+export const letterTypes: LetterType[] = [
   {
-    id: "USULAN_PESERTA",
-    title: "Surat Keterangan Usulan Peserta",
-    description: "Surat untuk mengusulkan seseorang sebagai peserta program",
+    id: "surat-keterangan-usaha",
+    title: "SURAT KETERANGAN USAHA",
+    description: "Surat keterangan untuk usaha/bisnis",
+    docId: "1cKqmk0r8PLImHgtWmtsx3Gjep9YPET15_vnaO8aMzM0",
+    letterCode: "KET-USH",
+    variables: [
+      "nomor_surat",
+      "nama",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "pekerjaan",
+      "nokk",
+      "nik",
+      "jenis-kelamin",
+      "alamat",
+      "keperluan",
+      "masa-berlaku",
+      "rw",
+      "nomor-tanggal-surat",
+      "bidang-usaha",
+      "lokasi-usaha",
+      "lama-usaha",
+      "surat-diperlukan",
+      "pemohon",
+      "date",
+      "kepala-desa",
+    ],
   },
   {
-    id: "TIDAK_MAMPU",
-    title: "Surat Keterangan Tidak Mampu",
-    description: "Surat yang menerangkan ketidakmampuan ekonomi seseorang",
+    id: "surat-pengantar-umum",
+    title: "SURAT PENGANTAR (UMUM)",
+    description: "Surat pengantar untuk keperluan umum",
+    docId: "1D-t_HjUJfuzB2SM_EAfTOcjTzsfLZNzV9eEcp_Mo3RU",
+    letterCode: "PNG-UMU",
+    variables: [
+      "nomor_surat",
+      "nama",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "pekerjaan",
+      "nokk",
+      "nik",
+      "jenis-kelamin",
+      "alamat",
+      "keperluan",
+      "surat-diperlukan",
+      "pemohon",
+      "date",
+      "kepala-desa",
+    ],
   },
   {
-    id: "JALUR_AFIRMASI",
-    title: "Surat Keterangan Jalur Afirmasi (Tidak Mampu)",
-    description: "Surat untuk jalur afirmasi pendidikan bagi yang tidak mampu",
+    id: "surat-pengantar-kehilangan",
+    title: "SURAT PENGANTAR (KEHILANGAN)",
+    description: "Surat pengantar untuk kehilangan barang",
+    docId: "1UagepWXzVyxooPskG_ybpDBCbsopAtnOdMbp19U2l7w",
+    letterCode: "PNG-HIL",
+    variables: [
+      "nomor_surat",
+      "nama",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "pekerjaan",
+      "nokk",
+      "nik",
+      "jenis-kelamin",
+      "alamat",
+      "keterangan-lain",
+      "barang-hilang",
+      "hilang-oleh",
+      "lokasi-hilang",
+      "date",
+      "kepala-desa",
+    ],
   },
   {
-    id: "KEHILANGAN_KK",
-    title: "Surat Keterangan Kehilangan Kartu Keluarga (KK)",
-    description: "Surat keterangan kehilangan kartu keluarga",
+    id: "surat-keterangan-kehilangan-kk",
+    title: "SURAT KETERANGAN KEHILANGAN KARTU KELUARGA (KK)",
+    description: "Surat keterangan kehilangan KK",
+    docId: "1_V49DIS1pFtH5dB39jXnuHcLRC2ryRP2u9OHg-pVvvk",
+    letterCode: "KET-HIL-KK",
+    variables: [
+      "nomor_surat",
+      "nama",
+      "nokk",
+      "nik",
+      "tempat-tanggal-lahir",
+      "jenis-kelamin",
+      "alamat",
+      "hilang-oleh",
+      "lokasi-hilang",
+      "surat-diperlukan",
+      "date",
+      "kepala-desa",
+    ],
   },
   {
-    id: "PENGANTAR",
-    title: "Surat Pengantar",
-    description: "Surat pengantar untuk berbagai keperluan",
+    id: "surat-keterangan-domisili",
+    title: "SURAT KETERANGAN DOMISILI TEMPAT TINGGAL",
+    description: "Surat keterangan domisili tempat tinggal",
+    docId: "1bCeNhEskG21i2xYcw4YTDbw4BLsUqTdBvu_Fo9depyw",
+    letterCode: "KET-DOM",
+    variables: [
+      "nomor_surat",
+      "nama",
+      "jenis-kelamin",
+      "bin",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "nik",
+      "alamat",
+      "alamat-domisili",
+      "dukuh",
+      "rt",
+      "rw",
+      "lama-tinggal",
+      "surat-diperlukan",
+      "camat",
+      "nip-camat",
+      "date",
+      "kepala-desa",
+    ],
   },
   {
-    id: "DOMISILI",
-    title: "Surat Keterangan Domisili Tempat Tinggal",
-    description: "Surat yang menerangkan domisili seseorang",
+    id: "surat-keterangan-tidak-mampu",
+    title: "SURAT KETERANGAN TIDAK MAMPU (UMUM)",
+    description: "Surat keterangan tidak mampu untuk keperluan umum",
+    docId: "1BmFOf20Qd_dfHghGyD3-fio0m0IpmE5MiQDj1E4SEEI",
+    letterCode: "KET-TM",
+    variables: [
+      "nomor_surat",
+      "nama",
+      "jenis-kelamin",
+      "tempat-tanggal-lahir",
+      "kewarganegaraan",
+      "nik",
+      "pekerjaan",
+      "alamat",
+      "rw",
+      "tanggal-nomor-surat",
+      "surat-diperlukan",
+      "camat",
+      "nip-camat",
+      "date",
+      "kepala-desa",
+    ],
   },
   {
-    id: "USAHA",
-    title: "Surat Keterangan Usaha",
-    description: "Surat keterangan untuk kepemilikan usaha",
+    id: "surat-keterangan-jalur-afirmasi",
+    title: "SURAT KETERANGAN JALUR AFIRMASI (TIDAK MAMPU)",
+    description: "Surat keterangan untuk jalur afirmasi pendidikan",
+    docId: "1Ef3d2Jxj2q-IUDNveP5qErsvewM1JzVKb-r76KEfhp0",
+    letterCode: "KET-AF",
+    variables: [
+      "nomor_surat",
+      "nama",
+      "jenis-kelamin",
+      "tempat-tanggal-lahir",
+      "nik",
+      "nokk",
+      "agama",
+      "pekerjaan",
+      "alamat",
+      "rw",
+      "tanggal-nomor-surat",
+      "nama-sekolah",
+      "nama-anak",
+      "idjtg",
+      "tempat-tanggal-lahir-anak",
+      "nik-anak",
+      "alamat-anak",
+      "camat",
+      "nip-camat",
+      "date",
+      "kepala-desa",
+    ],
+  },
+  {
+    id: "surat-keterangan-usulan-peserta-bpjs",
+    title: "SURAT KETERANGAN USULAN PESERTA (BPJS)",
+    description: "Surat keterangan usulan peserta BPJS",
+    docId: "1RNd1VLXItsvZwZ0QkD_EysjbkFRStTnRgFOCHsEJpNI",
+    letterCode: "KET-BPJS",
+    variables: [
+      "nomor_surat",
+      "nama",
+      "nokk",
+      "nik",
+      "tempat-tanggal-lahir",
+      "jenis-kelamin",
+      "alamat",
+      "notlp",
+      "date",
+      "kepala-desa",
+    ],
   },
 ];
 
-export interface CommonLetterData {
-  letterType: LetterType;
-  noTelp: string;
-  keteranganTambahan: string;
+export interface LetterData {
+  letterType: string;
+  formData: Record<string, string>;
 }
-
-export interface UsulanPesertaData extends CommonLetterData {
-  letterType: "USULAN_PESERTA";
-}
-
-export interface TidakMampuData extends CommonLetterData {
-  letterType: "TIDAK_MAMPU";
-  kewarganegaraan: string;
-}
-
-export interface JalurAfirmasiData extends CommonLetterData {
-  letterType: "JALUR_AFIRMASI";
-  namaAnak: string;
-  namaSekolah: string;
-  idjtg: string;
-  tempatLahirAnak: string;
-  tanggalLahirAnak: string;
-  nikAnak: string;
-  alamatAnak: string;
-}
-
-export interface KehilanganKKData extends CommonLetterData {
-  letterType: "KEHILANGAN_KK";
-}
-
-export interface PengantarData extends CommonLetterData {
-  letterType: "PENGANTAR";
-  keteranganLain: string;
-  pesanSurat: string;
-}
-
-export interface DomisiliData extends CommonLetterData {
-  letterType: "DOMISILI";
-  binBinti: string;
-  kewarganegaraan: string;
-  alamatKTP: string;
-  alamatDomisili: string;
-  lamaTinggal: string;
-  keperluan: string;
-}
-
-export interface UsahaData extends CommonLetterData {
-  letterType: "USAHA";
-  keperluan: string;
-  masaBerlaku: string;
-}
-
-export type LetterData =
-  | UsulanPesertaData
-  | TidakMampuData
-  | JalurAfirmasiData
-  | KehilanganKKData
-  | PengantarData
-  | DomisiliData
-  | UsahaData;

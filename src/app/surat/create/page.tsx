@@ -4,9 +4,37 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { fetchResidents, Resident } from "@/utils/spreadsheetService";
-import { letterTypes, LetterType, LetterData } from "@/types/letterTypes";
+import { letterTypes, LetterType } from "@/types/letterTypes";
 import ResidentSearch from "@/components/ResidentSearch";
 import LetterForm from "@/components/LetterForm";
+
+// Helper function to convert gender code to display text
+const getGenderDisplay = (gender: string): string => {
+  switch (gender?.toUpperCase()) {
+    case "LK":
+      return "Laki-laki";
+    case "PR":
+      return "Perempuan";
+    default:
+      return gender || "";
+  }
+};
+
+// Helper function to convert marital status
+const getMaritalStatusDisplay = (status: string): string => {
+  switch (status?.toUpperCase()) {
+    case "JD":
+      return "Janda";
+    case "DD":
+      return "Duda";
+    case "K":
+      return "Kawin";
+    case "BK":
+      return "Belum Kawin";
+    default:
+      return status || "";
+  }
+};
 
 export default function BuatSuratPage() {
   const router = useRouter();
@@ -16,8 +44,9 @@ export default function BuatSuratPage() {
   const [selectedResident, setSelectedResident] = useState<Resident | null>(
     null
   );
-  const [selectedLetterType, setSelectedLetterType] =
-    useState<LetterType | null>(null);
+  const [selectedLetterType, setSelectedLetterType] = useState<string | null>(
+    null
+  );
   const [step, setStep] = useState<
     "select-letter" | "select-resident" | "fill-form"
   >("select-letter");
@@ -45,16 +74,14 @@ export default function BuatSuratPage() {
     getResidents();
   }, []);
 
-  const handleLetterTypeSelect = (type: LetterType) => {
-    setSelectedLetterType(type);
+  const handleLetterTypeSelect = (typeId: string) => {
+    setSelectedLetterType(typeId);
     setStep("select-resident");
   };
 
   const handleResidentSelect = (resident: Resident) => {
     setSelectedResident(resident);
-    // Pre-populate form with resident data
     setFormData({
-      ...formData,
       letterType: selectedLetterType,
     });
     setStep("fill-form");
@@ -259,7 +286,7 @@ export default function BuatSuratPage() {
                   <div>
                     <p className="text-sm text-gray-600">Jenis Kelamin:</p>
                     <p className="font-medium">
-                      {selectedResident.jenisKelamin}
+                      {getGenderDisplay(selectedResident.jenisKelamin)}
                     </p>
                   </div>
                   <div>
@@ -272,6 +299,16 @@ export default function BuatSuratPage() {
                     </p>
                   </div>
                   <div>
+                    <p className="text-sm text-gray-600">Status Perkawinan:</p>
+                    <p className="font-medium">
+                      {getMaritalStatusDisplay(selectedResident.statusKawin)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Pendidikan:</p>
+                    <p className="font-medium">{selectedResident.pendidikan}</p>
+                  </div>
+                  <div>
                     <p className="text-sm text-gray-600">Agama:</p>
                     <p className="font-medium">{selectedResident.agama}</p>
                   </div>
@@ -280,12 +317,42 @@ export default function BuatSuratPage() {
                     <p className="font-medium">{selectedResident.pekerjaan}</p>
                   </div>
                   <div>
+                    <p className="text-sm text-gray-600">Umur:</p>
+                    <p className="font-medium">{selectedResident.umur} tahun</p>
+                  </div>
+                  <div>
                     <p className="text-sm text-gray-600">Alamat:</p>
                     <p className="font-medium">
                       {selectedResident.alamat} RT {selectedResident.rt} RW{" "}
                       {selectedResident.rw}
                     </p>
                   </div>
+                  <div>
+                    <p className="text-sm text-gray-600">RT/RW:</p>
+                    <p className="font-medium">
+                      {selectedResident.rt}/{selectedResident.rw}
+                    </p>
+                  </div>
+                  {selectedResident.ayah && (
+                    <div>
+                      <p className="text-sm text-gray-600">Nama Ayah:</p>
+                      <p className="font-medium">{selectedResident.ayah}</p>
+                    </div>
+                  )}
+                  {selectedResident.ibu && (
+                    <div>
+                      <p className="text-sm text-gray-600">Nama Ibu:</p>
+                      <p className="font-medium">{selectedResident.ibu}</p>
+                    </div>
+                  )}
+                  {selectedResident.shdk && (
+                    <div>
+                      <p className="text-sm text-gray-600">
+                        Status Hub. dalam Keluarga:
+                      </p>
+                      <p className="font-medium">{selectedResident.shdk}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -294,6 +361,9 @@ export default function BuatSuratPage() {
               <h3 className="text-lg font-medium mb-3">Data Surat</h3>
               <LetterForm
                 letterType={selectedLetterType}
+                letterTypeData={
+                  letterTypes.find((lt) => lt.id === selectedLetterType)!
+                }
                 resident={selectedResident}
                 formData={formData}
                 setFormData={setFormData}
