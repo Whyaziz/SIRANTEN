@@ -185,8 +185,8 @@ export default function Login() {
       await fetchUserInfo(accessToken);
       setIsLoggedIn(true);
 
-      // Optional: Navigate to dashboard after successful login
-      // router.push("/dashboard");
+      // Redirect to dashboard after successful login
+      router.push("/");
     } catch (error) {
       console.error("Authentication error:", error);
       setError(
@@ -209,6 +209,8 @@ export default function Login() {
       initializeGoogleAuth();
     } else {
       setIsLoading(false);
+      // If already authenticated, redirect will be handled by middleware
+      router.push("/");
     }
 
     // Setup auto-logout when token expires
@@ -239,49 +241,49 @@ export default function Login() {
     );
   }
 
-  if (isLoggedIn && userInfo) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-black">
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
-          <h1 className="text-2xl font-bold mb-6 text-green-600">
-            Login Berhasil!
-          </h1>
+  // if (isLoggedIn && userInfo) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen bg-gray-100 text-black">
+  //       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
+  //         <h1 className="text-2xl font-bold mb-6 text-green-600">
+  //           Login Berhasil!
+  //         </h1>
 
-          <div className="mb-6">
-            <img
-              src={userInfo.picture}
-              alt="Profile"
-              className="w-16 h-16 rounded-full mx-auto mb-4"
-            />
-            <h2 className="text-xl font-semibold">{userInfo.name}</h2>
-            <p className="text-gray-600">{userInfo.email}</p>
-            <p className="text-sm text-gray-500 mt-2">
-              Status:{" "}
-              {userInfo.email_verified
-                ? "✅ Terverifikasi"
-                : "❌ Belum Terverifikasi"}
-            </p>
-          </div>
+  //         <div className="mb-6">
+  //           <img
+  //             src={userInfo.picture}
+  //             alt="Profile"
+  //             className="w-16 h-16 rounded-full mx-auto mb-4"
+  //           />
+  //           <h2 className="text-xl font-semibold">{userInfo.name}</h2>
+  //           <p className="text-gray-600">{userInfo.email}</p>
+  //           <p className="text-sm text-gray-500 mt-2">
+  //             Status:{" "}
+  //             {userInfo.email_verified
+  //               ? "✅ Terverifikasi"
+  //               : "❌ Belum Terverifikasi"}
+  //           </p>
+  //         </div>
 
-          <div className="flex gap-4">
-            <button
-              onClick={() => router.push("/")}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-200"
-            >
-              Dashboard
-            </button>
+  //         <div className="flex gap-4">
+  //           <button
+  //             onClick={() => router.push("/")}
+  //             className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-200"
+  //           >
+  //             Dashboard
+  //           </button>
 
-            <button
-              onClick={logout}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-200"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  //           <button
+  //             onClick={logout}
+  //             className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded transition duration-200"
+  //           >
+  //             Logout
+  //           </button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[url('/assets/login/bg-login.png')] bg-cover bg-no-repeat bg-bottom lg:bg-bottom-right text-black">
