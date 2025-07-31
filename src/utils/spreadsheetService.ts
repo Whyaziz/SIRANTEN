@@ -44,6 +44,10 @@ export async function fetchResidents(): Promise<Resident[]> {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
+    if (response.status === 403) {
+      throw new Error("ACCESS_DENIED");
+    }
+
     if (!response.ok) {
       throw new Error("Failed to fetch data");
     }
@@ -88,5 +92,28 @@ export async function fetchResidents(): Promise<Resident[]> {
   } catch (error) {
     console.error("Error fetching data:", error);
     throw error;
+  }
+}
+
+// Add function to check spreadsheet access
+export async function checkSpreadsheetAccess(): Promise<boolean> {
+  const accessToken = Cookies.get("auth_token");
+
+  if (!accessToken) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+
+    return response.ok;
+  } catch (error) {
+    console.error("Error checking spreadsheet access:", error);
+    return false;
   }
 }

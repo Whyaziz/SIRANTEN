@@ -31,6 +31,10 @@ export async function fetchDocumentTemplate(
       }
     );
 
+    if (response.status === 403) {
+      throw new Error("ACCESS_DENIED");
+    }
+
     if (!response.ok) {
       throw new Error("Failed to fetch document");
     }
@@ -229,6 +233,10 @@ export async function downloadDocument(
       }
     );
 
+    if (response.status === 403) {
+      throw new Error("ACCESS_DENIED");
+    }
+
     if (!response.ok) {
       throw new Error(`Failed to download ${format.toUpperCase()}`);
     }
@@ -326,6 +334,10 @@ export async function createProcessedDocument(
         }),
       }
     );
+
+    if (copyResponse.status === 403) {
+      throw new Error("ACCESS_DENIED");
+    }
 
     if (!copyResponse.ok) {
       throw new Error("Failed to create document copy");

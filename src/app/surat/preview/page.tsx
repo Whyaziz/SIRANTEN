@@ -190,6 +190,7 @@ export default function PreviewPage() {
   const handleDownload = async (format: "pdf" | "docx") => {
     try {
       setDownloading(format);
+      setError(null); // Clear previous errors
 
       const letterTypeData = letterTypes.find(
         (lt) => lt.id === previewData?.letterType
@@ -206,13 +207,24 @@ export default function PreviewPage() {
       let docToDownload = processedDocument;
 
       if (!docToDownload) {
-        // Create a new processed document with variables replaced, passing the correct template docId
-        docToDownload = await createProcessedDocument(
-          variables,
-          fileName,
-          letterTypeData?.docId
-        );
-        setProcessedDocument(docToDownload);
+        try {
+          // Create a new processed document with variables replaced, passing the correct template docId
+          docToDownload = await createProcessedDocument(
+            variables,
+            fileName,
+            letterTypeData?.docId
+          );
+          setProcessedDocument(docToDownload);
+        } catch (createError: any) {
+          if (createError.message.includes("ACCESS_DENIED")) {
+            setError(
+              `Akses ditolak: Pastikan template dokumen ${letterTypeData?.title} memiliki izin yang tepat. Hubungi administrator untuk mengatur permission dokumen.`
+            );
+          } else {
+            setError(`Gagal membuat dokumen: ${createError.message}`);
+          }
+          return;
+        }
       }
 
       // Download the processed document
@@ -221,13 +233,15 @@ export default function PreviewPage() {
         format,
         fileName
       );
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error downloading:", err);
-      setError(
-        `Gagal mengunduh ${format.toUpperCase()}: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`
-      );
+      if (err.message.includes("ACCESS_DENIED")) {
+        setError(
+          `Akses ditolak: Tidak dapat mengunduh ${format.toUpperCase()}. Pastikan Anda memiliki permission yang tepat pada dokumen.`
+        );
+      } else {
+        setError(`Gagal mengunduh ${format.toUpperCase()}: ${err.message}`);
+      }
     } finally {
       setDownloading(null);
     }
@@ -309,12 +323,12 @@ export default function PreviewPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <button
+                {/* <button
                   onClick={handleEdit}
                   className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition duration-200"
                 >
                   Edit
-                </button>
+                </button> */}
                 <Link
                   href="/"
                   className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition duration-200"
@@ -397,20 +411,30 @@ export default function PreviewPage() {
               </div>
             </div>
 
-            {/* Show Google Docs link if processed document exists */}
-            {processedDocument && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                <p className="text-sm text-blue-800 mb-2">
-                  <strong>Dokumen telah diproses:</strong>
-                </p>
-                <a
-                  href={processedDocument.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline text-sm"
-                >
-                  Buka di Google Docs: {processedDocument.title}
-                </a>
+            {/* Enhanced error display */}
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-red-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Error</h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>{error}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
