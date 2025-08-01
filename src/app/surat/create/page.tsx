@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { fetchResidents, Resident } from "@/utils/spreadsheetService";
-import { letterTypes, LetterType } from "@/types/letterTypes";
+import { fetchLetterTypes } from "@/utils/letterTypesService";
+import { LetterType, fallbackLetterTypes } from "@/types/letterTypes";
 import ResidentSearch from "@/components/ResidentSearch";
 import LetterForm from "@/components/LetterForm";
 
@@ -41,6 +42,7 @@ export default function BuatSuratPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [residents, setResidents] = useState<Resident[]>([]);
+  const [letterTypes, setLetterTypes] = useState<LetterType[]>([]);
   const [selectedResident, setSelectedResident] = useState<Resident | null>(
     null
   );
@@ -53,25 +55,49 @@ export default function BuatSuratPage() {
   const [formData, setFormData] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch residents data
+  // Fetch residents and letter types data
   useEffect(() => {
-    const getResidents = async () => {
+    const getData = async () => {
       try {
         setLoading(true);
-        const data = await fetchResidents();
-        setResidents(data);
+
+        // Fetch both residents and letter types
+        const [residentsData, letterTypesData] = await Promise.allSettled([
+          fetchResidents(),
+          fetchLetterTypes(),
+        ]);
+
+        // Handle residents data
+        if (residentsData.status === "fulfilled") {
+          setResidents(residentsData.value);
+        } else {
+          console.error("Error fetching residents:", residentsData.reason);
+          throw new Error("Gagal memuat data penduduk");
+        }
+
+        // Handle letter types data with fallback
+        if (letterTypesData.status === "fulfilled") {
+          setLetterTypes(letterTypesData.value);
+        } else {
+          console.warn(
+            "Error fetching letter types, using fallback:",
+            letterTypesData.reason
+          );
+          setLetterTypes(fallbackLetterTypes);
+        }
+
         setError(null);
       } catch (err) {
-        console.error("Error fetching residents:", err);
+        console.error("Error fetching data:", err);
         setError(
-          "Gagal memuat data penduduk. Pastikan Anda sudah login dan memiliki akses yang sesuai."
+          "Gagal memuat data. Pastikan Anda sudah login dan memiliki akses yang sesuai."
         );
       } finally {
         setLoading(false);
       }
     };
 
-    getResidents();
+    getData();
   }, []);
 
   const handleLetterTypeSelect = (typeId: string) => {

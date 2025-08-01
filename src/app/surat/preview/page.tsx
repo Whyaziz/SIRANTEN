@@ -13,7 +13,8 @@ import {
   deleteProcessedDocument,
   ProcessedDocument,
 } from "@/utils/docsService";
-import { letterTypes } from "@/types/letterTypes";
+import { fetchLetterTypes } from "@/utils/letterTypesService";
+import { LetterType, fallbackLetterTypes } from "@/types/letterTypes";
 import { Resident } from "@/utils/spreadsheetService";
 
 interface PreviewData {
@@ -60,6 +61,22 @@ export default function PreviewPage() {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [processedDocument, setProcessedDocument] =
     useState<ProcessedDocument | null>(null);
+  const [letterTypes, setLetterTypes] = useState<LetterType[]>([]);
+
+  // Fetch letter types
+  useEffect(() => {
+    const getLetterTypes = async () => {
+      try {
+        const types = await fetchLetterTypes();
+        setLetterTypes(types);
+      } catch (err) {
+        console.warn("Failed to fetch letter types, using fallback:", err);
+        setLetterTypes(fallbackLetterTypes);
+      }
+    };
+
+    getLetterTypes();
+  }, []);
 
   useEffect(() => {
     const loadPreviewData = () => {
@@ -82,7 +99,7 @@ export default function PreviewPage() {
   }, [router]);
 
   useEffect(() => {
-    if (!previewData) return;
+    if (!previewData || letterTypes.length === 0) return;
 
     const loadTemplate = async () => {
       try {
@@ -119,7 +136,7 @@ export default function PreviewPage() {
     };
 
     loadTemplate();
-  }, [previewData]);
+  }, [previewData, letterTypes]);
 
   const createVariablesFromData = (
     data: PreviewData

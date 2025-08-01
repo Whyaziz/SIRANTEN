@@ -7,7 +7,8 @@ export interface LetterType {
   variables: string[];
 }
 
-export const letterTypes: LetterType[] = [
+// Fallback letter types in case database is unavailable
+export const fallbackLetterTypes: LetterType[] = [
   {
     id: "surat-keterangan-usaha",
     title: "SURAT KETERANGAN USAHA",
