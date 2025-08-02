@@ -225,11 +225,12 @@ export default function PreviewPage() {
 
       if (!docToDownload) {
         try {
-          // Create a new processed document with variables replaced, passing the correct template docId
+          // Create a new processed document with variables replaced, saving to "Riwayat" folder
           docToDownload = await createProcessedDocument(
             variables,
             fileName,
-            letterTypeData?.docId
+            letterTypeData?.docId,
+            "1fRjkn2UzRGH3ZBH1dIc-HWbonxwSIR-9" // Explicitly specify "Riwayat" folder ID
           );
           setProcessedDocument(docToDownload);
         } catch (createError: any) {

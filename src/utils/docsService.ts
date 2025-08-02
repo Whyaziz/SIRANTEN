@@ -293,7 +293,8 @@ export function extractVariablesFromTemplate(content: string): string[] {
 export async function createProcessedDocument(
   variables: Record<string, string>,
   fileName: string = "Surat",
-  templateDocId?: string
+  templateDocId?: string,
+  parentFolderId: string = "1fRjkn2UzRGH3ZBH1dIc-HWbonxwSIR-9" // Default to "Riwayat" folder
 ): Promise<ProcessedDocument> {
   const accessToken = Cookies.get("auth_token");
 
@@ -308,7 +309,7 @@ export async function createProcessedDocument(
     if (storedData) {
       const data = JSON.parse(storedData);
       const letterTypes = await import("@/types/letterTypes");
-      const letterTypeData = letterTypes.letterTypes.find(
+      const letterTypeData = letterTypes.fallbackLetterTypes.find(
         (lt) => lt.id === data.letterType
       );
       docIdToUse = letterTypeData?.docId;
@@ -320,7 +321,7 @@ export async function createProcessedDocument(
   }
 
   try {
-    // Step 1: Create a copy of the template document using the correct docId
+    // Step 1: Create a copy of the template document using the correct docId and save to specific folder
     const copyResponse = await fetch(
       `https://www.googleapis.com/drive/v3/files/${docIdToUse}/copy`,
       {
@@ -331,6 +332,7 @@ export async function createProcessedDocument(
         },
         body: JSON.stringify({
           name: `${fileName} - ${new Date().toLocaleDateString("id-ID")}`,
+          parents: [parentFolderId], // Specify the parent folder
         }),
       }
     );
