@@ -247,7 +247,6 @@ export default function LetterForm({
       "tanggal-lahir",
       "alamat",
       "alamat-lengkap",
-      "alamat-domisili",
       "rt",
       "rw",
       "rtrw",
